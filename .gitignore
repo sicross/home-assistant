@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Home Assistant databases
+*.db
+*.db-shm
+*.db-wal
+
+# Home Assistant logs
+home-assistant.log*
+*.log
+
+# Secrets
+secrets.yaml
+
+# Internal storage and cache
+.storage/
+.cloud/
+deps/
+tts/
+.HA_VERSION
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
