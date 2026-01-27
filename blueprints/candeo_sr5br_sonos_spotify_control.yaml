@@ -1,9 +1,10 @@
 blueprint:
-  name: Candeo SR5BR - Sonos Spotify Control
+  name: Candeo SR5BR - Sonos Spotify Control (Enhanced)
   description: |
     Control Spotify playback on Sonos using the Candeo C-ZB-SR5BR scene remote.
-    - Button 1-4: Play specific Spotify playlists
-    - Centre button: Play/Pause music
+    - Button 1-4: Play specific Spotify playlists (with shuffle enabled)
+    - Centre button (single click): Play/Pause music
+    - Centre button (double click): Skip to next track
     - Rotary dial: Volume up/down
   domain: automation
   input:
@@ -84,13 +85,18 @@ action:
       pl4: !input playlist_4
   
   - choose:
-      # Button 1 - Play Playlist 1
+      # Button 1 - Play Playlist 1 (with shuffle)
       - conditions:
           - condition: template
             value_template: "{{ command == 'button_1_click' }}"
           - condition: template
             value_template: "{{ pl1 != '' }}"
         sequence:
+          - service: media_player.shuffle_set
+            target:
+              entity_id: "{{ sonos }}"
+            data:
+              shuffle: true
           - service: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
@@ -98,13 +104,18 @@ action:
               media_content_type: playlist
               media_content_id: "{{ pl1 }}"
       
-      # Button 2 - Play Playlist 2
+      # Button 2 - Play Playlist 2 (with shuffle)
       - conditions:
           - condition: template
             value_template: "{{ command == 'button_2_click' }}"
           - condition: template
             value_template: "{{ pl2 != '' }}"
         sequence:
+          - service: media_player.shuffle_set
+            target:
+              entity_id: "{{ sonos }}"
+            data:
+              shuffle: true
           - service: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
@@ -112,13 +123,18 @@ action:
               media_content_type: playlist
               media_content_id: "{{ pl2 }}"
       
-      # Button 3 - Play Playlist 3
+      # Button 3 - Play Playlist 3 (with shuffle)
       - conditions:
           - condition: template
             value_template: "{{ command == 'button_3_click' }}"
           - condition: template
             value_template: "{{ pl3 != '' }}"
         sequence:
+          - service: media_player.shuffle_set
+            target:
+              entity_id: "{{ sonos }}"
+            data:
+              shuffle: true
           - service: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
@@ -126,13 +142,18 @@ action:
               media_content_type: playlist
               media_content_id: "{{ pl3 }}"
       
-      # Button 4 - Play Playlist 4
+      # Button 4 - Play Playlist 4 (with shuffle)
       - conditions:
           - condition: template
             value_template: "{{ command == 'button_4_click' }}"
           - condition: template
             value_template: "{{ pl4 != '' }}"
         sequence:
+          - service: media_player.shuffle_set
+            target:
+              entity_id: "{{ sonos }}"
+            data:
+              shuffle: true
           - service: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
@@ -140,12 +161,21 @@ action:
               media_content_type: playlist
               media_content_id: "{{ pl4 }}"
       
-      # Centre Button - Play/Pause Toggle
+      # Centre Button Single Click - Play/Pause Toggle
       - conditions:
           - condition: template
             value_template: "{{ command == 'centre_button_click' }}"
         sequence:
           - service: media_player.media_play_pause
+            target:
+              entity_id: "{{ sonos }}"
+      
+      # Centre Button Double Click - Skip to Next Track
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'centre_button_double_click' }}"
+        sequence:
+          - service: media_player.media_next_track
             target:
               entity_id: "{{ sonos }}"
       
