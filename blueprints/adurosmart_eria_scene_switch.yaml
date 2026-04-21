@@ -8,6 +8,7 @@ blueprint:
     The device sends a `toggle` command for the top button and `recall` scene
     commands (scene IDs 253-255) for the three scene buttons.
   domain: automation
+  source_url: https://github.com/sicross/home-assistant/blob/main/blueprints/adurosmart_eria_scene_switch.yaml
   input:
     remote:
       name: AduroSmart Scene Switch
