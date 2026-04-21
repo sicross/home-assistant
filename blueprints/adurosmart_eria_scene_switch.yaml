@@ -1,0 +1,81 @@
+blueprint:
+  name: AduroSmart ERIA Scene Switch (4-Button)
+  description: |
+    Control actions using the AduroSmart ERIA Wireless Scene Switch.
+    - Top button (ON/OFF): toggle action
+    - Scene buttons 1-3: three independent scene actions
+
+    The device sends a `toggle` command for the top button and `recall` scene
+    commands (scene IDs 253-255) for the three scene buttons.
+  domain: automation
+  input:
+    remote:
+      name: AduroSmart Scene Switch
+      description: Select your AduroSmart ERIA scene switch device
+      selector:
+        device:
+          integration: zha
+
+    toggle_action:
+      name: Top button (ON/OFF) pressed
+      description: Action to run when the top ON/OFF button is pressed
+      default: []
+      selector:
+        action: {}
+
+    scene_1_action:
+      name: Scene 1 button pressed
+      description: Action to run when scene button 1 is pressed
+      default: []
+      selector:
+        action: {}
+
+    scene_2_action:
+      name: Scene 2 button pressed
+      description: Action to run when scene button 2 is pressed
+      default: []
+      selector:
+        action: {}
+
+    scene_3_action:
+      name: Scene 3 button pressed
+      description: Action to run when scene button 3 is pressed
+      default: []
+      selector:
+        action: {}
+
+mode: queued
+max: 5
+max_exceeded: silent
+
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+
+action:
+  - variables:
+      command: "{{ trigger.event.data.command }}"
+      scene_id: "{{ trigger.event.data.params.scene_id | default(-1) }}"
+
+  - choose:
+      # Top button - toggle
+      - conditions:
+          - "{{ command == 'toggle' }}"
+        sequence: !input toggle_action
+
+      # Scene 1
+      - conditions:
+          - "{{ command == 'recall' and scene_id == 253 }}"
+        sequence: !input scene_1_action
+
+      # Scene 2
+      - conditions:
+          - "{{ command == 'recall' and scene_id == 254 }}"
+        sequence: !input scene_2_action
+
+      # Scene 3
+      - conditions:
+          - "{{ command == 'recall' and scene_id == 255 }}"
+        sequence: !input scene_3_action
