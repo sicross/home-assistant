@@ -1,10 +1,10 @@
 blueprint:
-  name: Candeo SR5BR - Sonos Spotify Control (Enhanced)
+  name: Candeo SR5BR - Sonos Spotify Control (Enhanced) v6
   description: |
     Control Spotify playback on Sonos using the Candeo C-ZB-SR5BR scene remote.
-    - Button 1-4: Play specific Spotify playlists (with shuffle enabled)
-    - Centre button (single click): Play/Pause music
-    - Centre button (double click): Skip to next track
+    - Buttons 1-4: Play specific Spotify playlists (with shuffle enabled)
+    - Centre button (single): Play/Pause
+    - Centre button (double): Skip to next track
     - Rotary dial: Volume up/down
   domain: automation
   input:
@@ -16,44 +16,40 @@ blueprint:
           integration: zha
           manufacturer: Candeo
           model: C-ZB-SR5BR
-    
+
     sonos_device:
       name: Sonos Device
       description: Select your Sonos speaker
       selector:
         entity:
           domain: media_player
-    
+
     playlist_1:
       name: Button 1 - Spotify Playlist URI
       description: |
         Spotify URI for playlist 1 (e.g., spotify:playlist:37i9dQZF1DXcBWIGoYBM5M)
-        Find URI: Open Spotify > Right-click playlist > Share > Copy Spotify URI
       default: ""
       selector:
         text:
-    
+
     playlist_2:
       name: Button 2 - Spotify Playlist URI
-      description: Spotify URI for playlist 2
       default: ""
       selector:
         text:
-    
+
     playlist_3:
       name: Button 3 - Spotify Playlist URI
-      description: Spotify URI for playlist 3
       default: ""
       selector:
         text:
-    
+
     playlist_4:
       name: Button 4 - Spotify Playlist URI
-      description: Spotify URI for playlist 4
       default: ""
       selector:
         text:
-    
+
     volume_step:
       name: Volume Step Size
       description: How much to change volume with each dial rotation (%)
@@ -65,7 +61,8 @@ blueprint:
           step: 1
           unit_of_measurement: "%"
 
-mode: restart
+mode: queued
+max: 10
 max_exceeded: silent
 
 trigger:
@@ -76,115 +73,102 @@ trigger:
 
 action:
   - variables:
-      command: "{{ trigger.event.data.command }}"
       sonos: !input sonos_device
       vol_step: !input volume_step
       pl1: !input playlist_1
       pl2: !input playlist_2
       pl3: !input playlist_3
       pl4: !input playlist_4
-  
+      command: "{{ trigger.event.data.command | default('') }}"
+      button: "{{ trigger.event.data.args.button | default('') if trigger.event.data.args is defined else '' }}"
+      direction: "{{ trigger.event.data.args.device_rotated | default('') if trigger.event.data.args is defined else '' }}"
+
   - choose:
-      # Button 1 - Play Playlist 1 (with shuffle)
+      # Button 1
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_1_click' }}"
-          - condition: template
-            value_template: "{{ pl1 != '' }}"
+          - "{{ command == 'press' and button == 'button_1' and pl1 != '' }}"
         sequence:
-          - service: media_player.shuffle_set
+          - action: media_player.shuffle_set
             target:
               entity_id: "{{ sonos }}"
             data:
               shuffle: true
-          - service: media_player.play_media
+          - action: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
             data:
               media_content_type: playlist
               media_content_id: "{{ pl1 }}"
-      
-      # Button 2 - Play Playlist 2 (with shuffle)
+
+      # Button 2
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_2_click' }}"
-          - condition: template
-            value_template: "{{ pl2 != '' }}"
+          - "{{ command == 'press' and button == 'button_2' and pl2 != '' }}"
         sequence:
-          - service: media_player.shuffle_set
+          - action: media_player.shuffle_set
             target:
               entity_id: "{{ sonos }}"
             data:
               shuffle: true
-          - service: media_player.play_media
+          - action: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
             data:
               media_content_type: playlist
               media_content_id: "{{ pl2 }}"
-      
-      # Button 3 - Play Playlist 3 (with shuffle)
+
+      # Button 3
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_3_click' }}"
-          - condition: template
-            value_template: "{{ pl3 != '' }}"
+          - "{{ command == 'press' and button == 'button_3' and pl3 != '' }}"
         sequence:
-          - service: media_player.shuffle_set
+          - action: media_player.shuffle_set
             target:
               entity_id: "{{ sonos }}"
             data:
               shuffle: true
-          - service: media_player.play_media
+          - action: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
             data:
               media_content_type: playlist
               media_content_id: "{{ pl3 }}"
-      
-      # Button 4 - Play Playlist 4 (with shuffle)
+
+      # Button 4
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_4_click' }}"
-          - condition: template
-            value_template: "{{ pl4 != '' }}"
+          - "{{ command == 'press' and button == 'button_4' and pl4 != '' }}"
         sequence:
-          - service: media_player.shuffle_set
+          - action: media_player.shuffle_set
             target:
               entity_id: "{{ sonos }}"
             data:
               shuffle: true
-          - service: media_player.play_media
+          - action: media_player.play_media
             target:
               entity_id: "{{ sonos }}"
             data:
               media_content_type: playlist
               media_content_id: "{{ pl4 }}"
-      
-      # Centre Button Single Click - Play/Pause Toggle
+
+      # Centre button single press - Play/Pause
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'centre_button_click' }}"
+          - "{{ command == 'press' and button == 'button_centre' }}"
         sequence:
-          - service: media_player.media_play_pause
+          - action: media_player.media_play_pause
             target:
               entity_id: "{{ sonos }}"
-      
-      # Centre Button Double Click - Skip to Next Track
+
+      # Centre button double press - Skip to next track
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'centre_button_double_click' }}"
+          - "{{ command == 'double' and button == 'button_centre' }}"
         sequence:
-          - service: media_player.media_next_track
+          - action: media_player.media_next_track
             target:
               entity_id: "{{ sonos }}"
-      
-      # Dial Rotation Right - Volume Up
+
+      # Dial right - Volume Up
       - conditions:
-          - condition: template
-            value_template: "{{ command in ['started_rotating_right', 'continued_rotating_right'] }}"
+          - "{{ command in ['started_rotating', 'continued_rotating'] and direction == 'right' }}"
         sequence:
-          - service: media_player.volume_set
+          - action: media_player.volume_set
             target:
               entity_id: "{{ sonos }}"
             data:
@@ -192,13 +176,12 @@ action:
                 {% set current = state_attr(sonos, 'volume_level') | float(0) %}
                 {% set new_vol = current + (vol_step / 100) %}
                 {{ [new_vol, 1.0] | min }}
-      
-      # Dial Rotation Left - Volume Down
+
+      # Dial left - Volume Down
       - conditions:
-          - condition: template
-            value_template: "{{ command in ['started_rotating_left', 'continued_rotating_left'] }}"
+          - "{{ command in ['started_rotating', 'continued_rotating'] and direction == 'left' }}"
         sequence:
-          - service: media_player.volume_set
+          - action: media_player.volume_set
             target:
               entity_id: "{{ sonos }}"
             data:
